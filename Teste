@@ -1,0 +1,1805 @@
+:<!DOCTYPE html> 
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Semanal Shopee</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Pacifico&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/remixicon/4.6.0/remixicon.min.css">
+<script src="https://cdn.tailwindcss.com/3.4.16"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/echarts/5.5.0/echarts.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script>tailwind.config={theme:{extend:{colors:{primary:'#1a237e',secondary:'#e53935'},borderRadius:{'none':'0px','sm':'4px',DEFAULT:'8px','md':'12px','lg':'16px','xl':'20px','2xl':'24px','3xl':'32px','full':'9999px','button':'8px'}}}}</script>
+<style>
+:where([class^="ri-"])::before { content: "\f3c2"; }
+body {
+font-family: Arial, sans-serif;
+background-color: #f9fafb;
+}
+.header-gradient {
+background: linear-gradient(to right, #1a237e, #283593);
+}
+.nav-item {
+border-bottom: 3px solid transparent;
+transition: all 0.3s ease;
+}
+.nav-item.active {
+border-bottom: 3px solid #ffffff;
+}
+.chart-container {
+height: 350px;
+background-color: #ffffff;
+}
+.data-table th {
+background-color: #1a237e;
+color: white;
+}
+.data-table tr:nth-child(even) {
+background-color: #f2f2f2;
+}
+.data-table tr:hover {
+background-color: #e8eaf6;
+}
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+-webkit-appearance: none;
+margin: 0;
+}
+.status-good {
+background-color: rgba(76, 175, 80, 0.2);
+color: #2e7d32;
+}
+.status-warning {
+background-color: rgba(255, 152, 0, 0.2);
+color: #ef6c00;
+}
+.status-bad {
+background-color: rgba(244, 67, 54, 0.2);
+color: #c62828;
+}
+.filter-dropdown {
+appearance: none;
+background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%231a237e'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+background-repeat: no-repeat;
+background-position: right 0.5rem center;
+background-size: 1.5em 1.5em;
+}
+</style>
+</head>
+<body>
+<div class="flex flex-col min-h-screen">
+<!-- Header -->
+<header class="header-gradient text-white py-3">
+<div class="container mx-auto px-4">
+<div class="flex justify-between items-center">
+<div class="font-bold text-xl">TOTAL EXPRESS</div>
+<div class="text-center text-xl font-bold">PERFORMANCE SHOPEE</div>
+<div class="flex items-center gap-4">
+<label class="cursor-pointer bg-white text-primary px-4 py-2 rounded-button flex items-center gap-2 whitespace-nowrap">
+<i class="ri-upload-2-line"></i>
+<span>Upload Excel</span>
+<input type="file" class="hidden" id="excelFile" accept=".xlsx, .xls">
+</label>
+<button id="exportPDF" class="bg-white text-primary px-4 py-2 rounded-button flex items-center gap-2 whitespace-nowrap">
+<i class="ri-file-pdf-line"></i>
+<span>Export PDF</span>
+</button>
+</div>
+</div>
+</div>
+</header>
+<!-- Navigation -->
+<nav class="bg-gray-800 text-white">
+<div class="container mx-auto px-4">
+<div class="flex justify-between">
+<div class="flex space-x-8">
+<a href="https://readdy.ai/home/185448b4-c783-4863-9800-8862ca7b53b9/56276ea5-7e8d-4eed-84b0-6a29e86067b8" data-readdy="true" class="nav-item py-3 px-4">PERFORMANCE SHOPEE</a>
+<a href="#" class="nav-item active py-3 px-4">SEMANAL SHOPEE</a>
+</div>
+<div class="flex items-center">
+<div class="w-8 h-8 flex items-center justify-center text-white">
+<i class="ri-shopping-cart-2-line ri-lg"></i>
+</div>
+</div>
+</div>
+</div>
+</nav>
+<!-- Main Content -->
+<main class="flex-grow bg-white">
+<div class="container mx-auto px-4 py-6">
+<!-- Filters Section -->
+<div class="bg-white rounded shadow p-4 mb-6">
+<div class="flex flex-wrap items-center justify-between gap-4">
+<div class="flex items-center gap-4">
+<div class="flex flex-col">
+<label for="weekSelector" class="text-sm font-medium text-gray-700 mb-1">Selecionar Semana</label>
+<select id="weekSelector" class="filter-dropdown border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary pr-8">
+<option value="W26">W26 (01/07/2025 - 07/07/2025)</option>
+<option value="W25">W25 (24/06/2025 - 30/06/2025)</option>
+<option value="W24">W24 (17/06/2025 - 23/06/2025)</option>
+<option value="W23">W23 (10/06/2025 - 16/06/2025)</option>
+<option value="W22">W22 (03/06/2025 - 09/06/2025)</option>
+</select>
+</div>
+<div class="flex flex-col">
+<label for="regionSelector" class="text-sm font-medium text-gray-700 mb-1">Região</label>
+<div class="relative">
+<select id="regionSelector" class="filter-dropdown border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary pr-8">
+<option value="all">Todas as Regiões</option>
+<option value="sudeste">Sudeste</option>
+<option value="sul">Sul</option>
+<option value="nordeste">Nordeste</option>
+<option value="centro-oeste">Centro-Oeste</option>
+<option value="norte">Norte</option>
+</select>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<div class="text-sm text-gray-600">
+<span class="font-medium">Período Atual:</span> 01/07/2025 - 07/07/2025 (W26)
+</div>
+<button id="refreshData" class="bg-primary text-white px-4 py-2 rounded-button flex items-center gap-2 whitespace-nowrap">
+<i class="ri-refresh-line"></i>
+<span>Atualizar Dados</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Metrics Cards -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+<div class="bg-white rounded shadow p-4">
+<div class="flex items-center justify-between mb-2">
+<h3 class="text-gray-500 text-sm">Volume Total de Entregas</h3>
+<div class="w-8 h-8 flex items-center justify-center text-primary bg-blue-50 rounded-full">
+<i class="ri-box-3-line"></i>
+</div>
+</div>
+<div class="flex items-end justify-between">
+<div>
+<p class="text-2xl font-bold">97.554</p>
+<p class="text-sm text-green-600 flex items-center">
+<i class="ri-arrow-up-line mr-1"></i>
+<span>10,6% vs semana anterior</span>
+</p>
+</div>
+<div class="text-xs text-gray-500">Meta: 95.000</div>
+</div>
+</div>
+<div class="bg-white rounded shadow p-4">
+<div class="flex items-center justify-between mb-2">
+<h3 class="text-gray-500 text-sm">SLA Geral</h3>
+<div class="w-8 h-8 flex items-center justify-center text-primary bg-blue-50 rounded-full">
+<i class="ri-time-line"></i>
+</div>
+</div>
+<div class="flex items-end justify-between">
+<div>
+<p class="text-2xl font-bold">99,4%</p>
+<p class="text-sm text-green-600 flex items-center">
+<i class="ri-arrow-up-line mr-1"></i>
+<span>0,1% vs semana anterior</span>
+</p>
+</div>
+<div class="text-xs text-gray-500">Meta: 98%</div>
+</div>
+</div>
+<div class="bg-white rounded shadow p-4">
+<div class="flex items-center justify-between mb-2">
+<h3 class="text-gray-500 text-sm">Entregas no Prazo</h3>
+<div class="w-8 h-8 flex items-center justify-center text-primary bg-blue-50 rounded-full">
+<i class="ri-check-double-line"></i>
+</div>
+</div>
+<div class="flex items-end justify-between">
+<div>
+<p class="text-2xl font-bold">96.100</p>
+<p class="text-sm text-green-600 flex items-center">
+<i class="ri-arrow-up-line mr-1"></i>
+<span>11,6% vs semana anterior</span>
+</p>
+</div>
+<div class="text-xs text-gray-500">98,5% do total</div>
+</div>
+</div>
+<div class="bg-white rounded shadow p-4">
+<div class="flex items-center justify-between mb-2">
+<h3 class="text-gray-500 text-sm">SLA TEX</h3>
+<div class="w-8 h-8 flex items-center justify-center text-primary bg-blue-50 rounded-full">
+<i class="ri-truck-line"></i>
+</div>
+</div>
+<div class="flex items-end justify-between">
+<div>
+<p class="text-2xl font-bold">94,2%</p>
+<p class="text-sm text-green-600 flex items-center">
+<i class="ri-arrow-up-line mr-1"></i>
+<span>3,5% vs semana anterior</span>
+</p>
+</div>
+<div class="text-xs text-gray-500">Meta: 92%</div>
+</div>
+</div>
+</div>
+<!-- Charts Section -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+<!-- Volume Semanal Chart -->
+<div class="bg-white rounded shadow p-4">
+<div class="flex justify-between items-center mb-4">
+<h2 class="text-lg font-bold">Volume Semanal</h2>
+<div class="flex gap-2">
+<button class="text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 px-2 py-1 rounded-full">Diário</button>
+<button class="text-xs bg-primary text-white px-2 py-1 rounded-full">Semanal</button>
+</div>
+</div>
+<div id="volumeChart" class="chart-container"></div>
+</div>
+<!-- SLA Comparison Chart -->
+<div class="bg-white rounded shadow p-4">
+<div class="flex justify-between items-center mb-4">
+<h2 class="text-lg font-bold">Comparativo SLA</h2>
+<div class="flex gap-2">
+<button class="text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 px-2 py-1 rounded-full">SLA TEX</button>
+<button class="text-xs bg-primary text-white px-2 py-1 rounded-full">SLA Shopee</button>
+</div>
+</div>
+<div id="slaChart" class="chart-container"></div>
+</div>
+</div>
+<!-- Regional Performance Table -->
+<div class="bg-white rounded shadow overflow-hidden mb-8">
+<div class="p-4 border-b">
+<h2 class="text-lg font-bold">Desempenho por Região</h2>
+</div>
+<div class="overflow-x-auto">
+<table class="data-table w-full text-sm">
+<thead>
+<tr>
+<th class="py-3 px-4 text-left">Região</th>
+<th class="py-3 px-4 text-center">Volume</th>
+<th class="py-3 px-4 text-center">% do Total</th>
+<th class="py-3 px-4 text-center">SLA Shopee</th>
+<th class="py-3 px-4 text-center">SLA TEX</th>
+<th class="py-3 px-4 text-center">Var. vs Semana Anterior</th>
+<th class="py-3 px-4 text-center">Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="py-3 px-4 font-medium">Sudeste</td>
+<td class="py-3 px-4 text-center">48.777</td>
+<td class="py-3 px-4 text-center">50,0%</td>
+<td class="py-3 px-4 text-center">99,7%</td>
+<td class="py-3 px-4 text-center">95,3%</td>
+<td class="py-3 px-4 text-center text-green-600">+2,1%</td>
+<td class="py-3 px-4 text-center"><span class="status-good px-2 py-1 rounded-full text-xs">Ótimo</span></td>
+</tr>
+<tr>
+<td class="py-3 px-4 font-medium">Sul</td>
+<td class="py-3 px-4 text-center">19.511</td>
+<td class="py-3 px-4 text-center">20,0%</td>
+<td class="py-3 px-4 text-center">99,5%</td>
+<td class="py-3 px-4 text-center">94,8%</td>
+<td class="py-3 px-4 text-center text-green-600">+1,8%</td>
+<td class="py-3 px-4 text-center"><span class="status-good px-2 py-1 rounded-full text-xs">Ótimo</span></td>
+</tr>
+<tr>
+<td class="py-3 px-4 font-medium">Nordeste</td>
+<td class="py-3 px-4 text-center">14.633</td>
+<td class="py-3 px-4 text-center">15,0%</td>
+<td class="py-3 px-4 text-center">98,9%</td>
+<td class="py-3 px-4 text-center">92,7%</td>
+<td class="py-3 px-4 text-center text-green-600">+3,2%</td>
+<td class="py-3 px-4 text-center"><span class="status-good px-2 py-1 rounded-full text-xs">Bom</span></td>
+</tr>
+<tr>
+<td class="py-3 px-4 font-medium">Centro-Oeste</td>
+<td class="py-3 px-4 text-center">9.755</td>
+<td class="py-3 px-4 text-center">10,0%</td>
+<td class="py-3 px-4 text-center">98,5%</td>
+<td class="py-3 px-4 text-center">91,4%</td>
+<td class="py-3 px-4 text-center text-yellow-600">-0,8%</td>
+<td class="py-3 px-4 text-center"><span class="status-warning px-2 py-1 rounded-full text-xs">Regular</span></td>
+</tr>
+<tr>
+<td class="py-3 px-4 font-medium">Norte</td>
+<td class="py-3 px-4 text-center">4.878</td>
+<td class="py-3 px-4 text-center">5,0%</td>
+<td class="py-3 px-4 text-center">96,8%</td>
+<td class="py-3 px-4 text-center">88,5%</td>
+<td class="py-3 px-4 text-center text-red-600">-2,3%</td>
+<td class="py-3 px-4 text-center"><span class="status-bad px-2 py-1 rounded-full text-xs">Atenção</span></td>
+</tr>
+</tbody>
+<tfoot class="bg-gray-100">
+<tr>
+<td class="py-3 px-4 font-bold">Total</td>
+<td class="py-3 px-4 text-center font-bold">97.554</td>
+<td class="py-3 px-4 text-center font-bold">100,0%</td>
+<td class="py-3 px-4 text-center font-bold">99,4%</td>
+<td class="py-3 px-4 text-center font-bold">94,2%</td>
+<td class="py-3 px-4 text-center font-bold text-green-600">+1,8%</td>
+<td class="py-3 px-4 text-center"><span class="status-good px-2 py-1 rounded-full text-xs">Bom</span></td>
+</tr>
+</tfoot>
+</table>
+</div>
+</div>
+<!-- Weekly Comparison Table -->
+<div class="bg-white rounded shadow overflow-hidden mb-8">
+<div class="p-4 border-b">
+<h2 class="text-lg font-bold">Comparativo Semanal</h2>
+</div>
+<div class="overflow-x-auto">
+<table class="data-table w-full text-sm">
+<thead>
+<tr>
+<th class="py-3 px-4 text-left">Métrica</th>
+<th class="py-3 px-4 text-center">W22</th>
+<th class="py-3 px-4 text-center">W23</th>
+<th class="py-3 px-4 text-center">W24</th>
+<th class="py-3 px-4 text-center">W25</th>
+<th class="py-3 px-4 text-center">W26</th>
+<th class="py-3 px-4 text-center">Tendência</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="py-3 px-4 font-medium">Volume Total</td>
+<td class="py-3 px-4 text-center">103.554</td>
+<td class="py-3 px-4 text-center">107.953</td>
+<td class="py-3 px-4 text-center">87.518</td>
+<td class="py-3 px-4 text-center">88.186</td>
+<td class="py-3 px-4 text-center font-bold">97.554</td>
+<td class="py-3 px-4 text-center">
+<div id="trendVolume" class="h-8"></div>
+</td>
+</tr>
+<tr>
+<td class="py-3 px-4 font-medium">SLA Shopee</td>
+<td class="py-3 px-4 text-center">96,9%</td>
+<td class="py-3 px-4 text-center">98,5%</td>
+<td class="py-3 px-4 text-center">99,2%</td>
+<td class="py-3 px-4 text-center">99,5%</td>
+<td class="py-3 px-4 text-center font-bold">99,4%</td>
+<td class="py-3 px-4 text-center">
+<div id="trendSLAShopee" class="h-8"></div>
+</td>
+</tr>
+<tr>
+<td class="py-3 px-4 font-medium">Entregas no Prazo</td>
+<td class="py-3 px-4 text-center">90.829</td>
+<td class="py-3 px-4 text-center">106.623</td>
+<td class="py-3 px-4 text-center">83.779</td>
+<td class="py-3 px-4 text-center">86.103</td>
+<td class="py-3 px-4 text-center font-bold">96.100</td>
+<td class="py-3 px-4 text-center">
+<div id="trendOnTime" class="h-8"></div>
+</td>
+</tr>
+<tr>
+<td class="py-3 px-4 font-medium">SLA TEX</td>
+<td class="py-3 px-4 text-center">87,8%</td>
+<td class="py-3 px-4 text-center">93,0%</td>
+<td class="py-3 px-4 text-center">93,0%</td>
+<td class="py-3 px-4 text-center">90,7%</td>
+<td class="py-3 px-4 text-center font-bold">94,2%</td>
+<td class="py-3 px-4 text-center">
+<div id="trendSLATex" class="h-8"></div>
+</td>
+</tr>
+<tr>
+<td class="py-3 px-4 font-medium">Tempo Médio de Entrega</td>
+<td class="py-3 px-4 text-center">2,8 dias</td>
+<td class="py-3 px-4 text-center">2,6 dias</td>
+<td class="py-3 px-4 text-center">2,5 dias</td>
+<td class="py-3 px-4 text-center">2,4 dias</td>
+<td class="py-3 px-4 text-center font-bold">2,3 dias</td>
+<td class="py-3 px-4 text-center">
+<div id="trendDeliveryTime" class="h-8"></div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<!-- Detailed Metrics Section -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+<!-- Daily Distribution Chart -->
+<div class="bg-white rounded shadow p-4">
+<h2 class="text-lg font-bold mb-4">Distribuição Diária</h2>
+<div id="dailyDistributionChart" class="chart-container"></div>
+</div>
+<!-- Delivery Status Chart -->
+<div class="bg-white rounded shadow p-4">
+<h2 class="text-lg font-bold mb-4">Status de Entrega</h2>
+<div id="deliveryStatusChart" class="chart-container"></div>
+</div>
+</div>
+</div>
+</main>
+</div>
+<script id="charts-script">
+document.addEventListener('DOMContentLoaded', function() {
+// Volume Semanal Chart
+const volumeChart = echarts.init(document.getElementById('volumeChart'));
+const volumeOption = {
+animation: false,
+tooltip: {
+trigger: 'axis',
+backgroundColor: 'rgba(255, 255, 255, 0.8)',
+borderColor: '#ccc',
+borderWidth: 1,
+textStyle: {
+color: '#1f2937'
+}
+},
+grid: {
+left: '3%',
+right: '4%',
+bottom: '10%',
+top: '3%',
+containLabel: true
+},
+xAxis: {
+type: 'category',
+data: ['W22', 'W23', 'W24', 'W25', 'W26'],
+axisLabel: {
+color: '#1f2937'
+}
+},
+yAxis: {
+type: 'value',
+axisLabel: {
+formatter: '{value}',
+color: '#1f2937'
+}
+},
+series: [
+{
+name: 'Volume Total',
+type: 'line',
+smooth: true,
+data: [103554, 107953, 87518, 88186, 97554],
+itemStyle: {
+color: 'rgba(87, 181, 231, 1)'
+},
+areaStyle: {
+color: {
+type: 'linear',
+x: 0,
+y: 0,
+x2: 0,
+y2: 1,
+colorStops: [
+{
+offset: 0,
+color: 'rgba(87, 181, 231, 0.3)'
+},
+{
+offset: 1,
+color: 'rgba(87, 181, 231, 0.1)'
+}
+]
+}
+},
+emphasis: {
+itemStyle: {
+color: 'rgba(87, 181, 231, 0.8)'
+}
+}
+}
+]
+};
+volumeChart.setOption(volumeOption);
+// SLA Comparison Chart
+const slaChart = echarts.init(document.getElementById('slaChart'));
+const slaOption = {
+animation: false,
+tooltip: {
+trigger: 'axis',
+backgroundColor: 'rgba(255, 255, 255, 0.8)',
+borderColor: '#ccc',
+borderWidth: 1,
+textStyle: {
+color: '#1f2937'
+}
+},
+legend: {
+data: ['SLA Shopee', 'SLA TEX', 'Diferença'],
+bottom: 0
+},
+grid: {
+left: '3%',
+right: '4%',
+bottom: '15%',
+top: '3%',
+containLabel: true
+},
+xAxis: {
+type: 'category',
+data: ['W22', 'W23', 'W24', 'W25', 'W26'],
+axisLabel: {
+color: '#1f2937'
+}
+},
+yAxis: [
+{
+type: 'value',
+name: 'Percentual',
+min: 80,
+max: 100,
+axisLabel: {
+formatter: '{value}%',
+color: '#1f2937'
+}
+},
+{
+type: 'value',
+name: 'Diferença',
+min: 0,
+max: 15,
+position: 'right',
+axisLabel: {
+formatter: '{value}%',
+color: '#1f2937'
+}
+}
+],
+series: [
+{
+name: 'SLA Shopee',
+type: 'line',
+data: [96.9, 98.5, 99.2, 99.5, 99.4],
+itemStyle: {
+color: 'rgba(141, 211, 199, 1)'
+},
+smooth: true,
+emphasis: {
+itemStyle: {
+color: 'rgba(141, 211, 199, 0.8)'
+}
+}
+},
+{
+name: 'SLA TEX',
+type: 'line',
+data: [87.8, 93.0, 93.0, 90.7, 94.2],
+itemStyle: {
+color: 'rgba(251, 191, 114, 1)'
+},
+smooth: true,
+emphasis: {
+itemStyle: {
+color: 'rgba(251, 191, 114, 0.8)'
+}
+}
+},
+{
+name: 'Diferença',
+type: 'bar',
+yAxisIndex: 1,
+data: [9.1, 5.5, 6.2, 8.8, 5.2],
+itemStyle: {
+color: 'rgba(252, 141, 98, 0.6)',
+borderRadius: [4, 4, 0, 0]
+},
+emphasis: {
+itemStyle: {
+color: 'rgba(252, 141, 98, 0.8)'
+}
+}
+}
+]
+};
+slaChart.setOption(slaOption);
+// Daily Distribution Chart
+const dailyDistributionChart = echarts.init(document.getElementById('dailyDistributionChart'));
+const dailyDistributionOption = {
+animation: false,
+tooltip: {
+trigger: 'axis',
+backgroundColor: 'rgba(255, 255, 255, 0.8)',
+borderColor: '#ccc',
+borderWidth: 1,
+textStyle: {
+color: '#1f2937'
+}
+},
+legend: {
+data: ['Volume', 'SLA'],
+bottom: 0
+},
+grid: {
+left: '3%',
+right: '4%',
+bottom: '15%',
+top: '3%',
+containLabel: true
+},
+xAxis: {
+type: 'category',
+data: ['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado', 'Domingo'],
+axisLabel: {
+color: '#1f2937'
+}
+},
+yAxis: [
+{
+type: 'value',
+name: 'Volume',
+axisLabel: {
+formatter: '{value}',
+color: '#1f2937'
+}
+},
+{
+type: 'value',
+name: 'SLA',
+min: 90,
+max: 100,
+position: 'right',
+axisLabel: {
+formatter: '{value}%',
+color: '#1f2937'
+}
+}
+],
+series: [
+{
+name: 'Volume',
+type: 'bar',
+data: [18635, 16584, 15608, 14633, 13658, 12682, 5754],
+barWidth: '40%',
+itemStyle: {
+color: 'rgba(87, 181, 231, 1)',
+borderRadius: [4, 4, 0, 0]
+},
+emphasis: {
+itemStyle: {
+color: 'rgba(87, 181, 231, 0.8)'
+}
+}
+},
+{
+name: 'SLA',
+type: 'line',
+yAxisIndex: 1,
+data: [99.6, 99.5, 99.7, 99.3, 99.2, 99.0, 98.8],
+itemStyle: {
+color: 'rgba(251, 191, 114, 1)'
+},
+smooth: true,
+emphasis: {
+itemStyle: {
+color: 'rgba(251, 191, 114, 0.8)'
+}
+}
+}
+]
+};
+dailyDistributionChart.setOption(dailyDistributionOption);
+// Delivery Status Chart
+const deliveryStatusChart = echarts.init(document.getElementById('deliveryStatusChart'));
+const deliveryStatusOption = {
+animation: false,
+tooltip: {
+trigger: 'item',
+backgroundColor: 'rgba(255, 255, 255, 0.8)',
+borderColor: '#ccc',
+borderWidth: 1,
+textStyle: {
+color: '#1f2937'
+}
+},
+legend: {
+orient: 'vertical',
+right: 10,
+top: 'center',
+data: ['Entregue no Prazo', 'Entregue com Atraso', 'Em Trânsito', 'Problemas de Entrega', 'Devoluções']
+},
+series: [
+{
+name: 'Status de Entrega',
+type: 'pie',
+radius: ['40%', '70%'],
+center: ['40%', '50%'],
+avoidLabelOverlap: false,
+itemStyle: {
+borderRadius: 8,
+borderColor: '#fff',
+borderWidth: 2
+},
+label: {
+show: false,
+position: 'center'
+},
+emphasis: {
+label: {
+show: true,
+fontSize: 14,
+fontWeight: 'bold'
+}
+},
+labelLine: {
+show: false
+},
+data: [
+{ value: 96100, name: 'Entregue no Prazo', itemStyle: { color: 'rgba(87, 181, 231, 1)' } },
+{ value: 585, name: 'Entregue com Atraso', itemStyle: { color: 'rgba(141, 211, 199, 1)' } },
+{ value: 390, name: 'Em Trânsito', itemStyle: { color: 'rgba(251, 191, 114, 1)' } },
+{ value: 292, name: 'Problemas de Entrega', itemStyle: { color: 'rgba(252, 141, 98, 1)' } },
+{ value: 187, name: 'Devoluções', itemStyle: { color: '#c7c7c7' } }
+]
+}
+]
+};
+deliveryStatusChart.setOption(deliveryStatusOption);
+// Trend Mini Charts
+const trendCharts = [
+{ id: 'trendVolume', data: [103554, 107953, 87518, 88186, 97554] },
+{ id: 'trendSLAShopee', data: [96.9, 98.5, 99.2, 99.5, 99.4] },
+{ id: 'trendOnTime', data: [90829, 106623, 83779, 86103, 96100] },
+{ id: 'trendSLATex', data: [87.8, 93.0, 93.0, 90.7, 94.2] },
+{ id: 'trendDeliveryTime', data: [2.8, 2.6, 2.5, 2.4, 2.3], inverse: true }
+];
+trendCharts.forEach(item => {
+const chart = echarts.init(document.getElementById(item.id));
+const isPositiveTrend = item.inverse ?
+item.data[item.data.length - 1] < item.data[item.data.length - 2] :
+item.data[item.data.length - 1] > item.data[item.data.length - 2];
+const option = {
+animation: false,
+grid: {
+left: 0,
+right: 0,
+top: 0,
+bottom: 0
+},
+xAxis: {
+type: 'category',
+data: ['W22', 'W23', 'W24', 'W25', 'W26'],
+show: false
+},
+yAxis: {
+type: 'value',
+show: false
+},
+series: [
+{
+data: item.data,
+type: 'line',
+symbol: 'none',
+smooth: true,
+lineStyle: {
+color: isPositiveTrend ? '#4caf50' : '#e53935',
+width: 2
+},
+areaStyle: {
+color: {
+type: 'linear',
+x: 0,
+y: 0,
+x2: 0,
+y2: 1,
+colorStops: [
+{
+offset: 0,
+color: isPositiveTrend ? 'rgba(76, 175, 80, 0.2)' : 'rgba(229, 57, 53, 0.2)'
+},
+{
+offset: 1,
+color: isPositiveTrend ? 'rgba(76, 175, 80, 0.05)' : 'rgba(229, 57, 53, 0.05)'
+}
+]
+}
+}
+}
+]
+};
+chart.setOption(option);
+});
+// Responsive charts
+window.addEventListener('resize', function() {
+volumeChart.resize();
+slaChart.resize();
+dailyDistributionChart.resize();
+deliveryStatusChart.resize();
+trendCharts.forEach(item => {
+const chart = echarts.init(document.getElementById(item.id));
+chart.resize();
+});
+});
+// File Upload and Export
+const fileInput = document.getElementById('excelFile');
+const exportButton = document.getElementById('exportPDF');
+const refreshButton = document.getElementById('refreshData');
+fileInput.addEventListener('change', function(e) {
+const file = e.target.files[0];
+if (file) {
+// Simulate loading
+refreshButton.innerHTML = '<i class="ri-loader-4-line animate-spin"></i><span>Processando...</span>';
+setTimeout(() => {
+refreshButton.innerHTML = '<i class="ri-refresh-line"></i><span>Atualizar Dados</span>';
+alert('Arquivo carregado com sucesso! Os dados foram atualizados.');
+}, 1500);
+}
+});
+exportButton.addEventListener('click', function() {
+const element = document.querySelector('main');
+const opt = {
+margin: 1,
+filename: 'semanal-shopee-report.pdf',
+image: { type: 'jpeg', quality: 0.98 },
+html2canvas: { scale: 2 },
+jsPDF: { unit: 'in', format: 'a4', orientation: 'landscape' }
+};
+// Simulate loading
+exportButton.innerHTML = '<i class="ri-loader-4-line animate-spin"></i><span>Gerando...</span>';
+setTimeout(() => {
+exportButton.innerHTML = '<i class="ri-file-pdf-line"></i><span>Export PDF</span>';
+html2pdf().set(opt).from(element).save();
+}, 1000);
+});
+refreshButton.addEventListener('click', function() {
+refreshButton.innerHTML = '<i class="ri-loader-4-line animate-spin"></i><span>Atualizando...</span>';
+setTimeout(() => {
+refreshButton.innerHTML = '<i class="ri-refresh-line"></i><span>Atualizar Dados</span>';
+alert('Dados atualizados com sucesso!');
+}, 1500);
+});
+// Week and Region Selectors
+const weekSelector = document.getElementById('weekSelector');
+const regionSelector = document.getElementById('regionSelector');
+weekSelector.addEventListener('change', function() {
+refreshButton.innerHTML = '<i class="ri-loader-4-line animate-spin"></i><span>Atualizando...</span>';
+setTimeout(() => {
+refreshButton.innerHTML = '<i class="ri-refresh-line"></i><span>Atualizar Dados</span>';
+}, 800);
+});
+regionSelector.addEventListener('change', function() {
+refreshButton.innerHTML = '<i class="ri-loader-4-line animate-spin"></i><span>Atualizando...</span>';
+setTimeout(() => {
+refreshButton.innerHTML = '<i class="ri-refresh-line"></i><span>Atualizar Dados</span>';
+}, 800);
+});
+});
+</script>
+</body>
+</html><!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Semanal Shopee</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Pacifico&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/remixicon/4.6.0/remixicon.min.css">
+<script src="https://cdn.tailwindcss.com/3.4.16"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/echarts/5.5.0/echarts.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script>tailwind.config={theme:{extend:{colors:{primary:'#1a237e',secondary:'#e53935'},borderRadius:{'none':'0px','sm':'4px',DEFAULT:'8px','md':'12px','lg':'16px','xl':'20px','2xl':'24px','3xl':'32px','full':'9999px','button':'8px'}}}}</script>
+<style>
+:where([class^="ri-"])::before { content: "\f3c2"; }
+body {
+font-family: Arial, sans-serif;
+background-color: #f9fafb;
+}
+.header-gradient {
+background: linear-gradient(to right, #1a237e, #283593);
+}
+.nav-item {
+border-bottom: 3px solid transparent;
+transition: all 0.3s ease;
+}
+.nav-item.active {
+border-bottom: 3px solid #ffffff;
+}
+.chart-container {
+height: 350px;
+background-color: #ffffff;
+}
+.data-table th {
+background-color: #1a237e;
+color: white;
+}
+.data-table tr:nth-child(even) {
+background-color: #f2f2f2;
+}
+.data-table tr:hover {
+background-color: #e8eaf6;
+}
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+-webkit-appearance: none;
+margin: 0;
+}
+.status-good {
+background-color: rgba(76, 175, 80, 0.2);
+color: #2e7d32;
+}
+.status-warning {
+background-color: rgba(255, 152, 0, 0.2);
+color: #ef6c00;
+}
+.status-bad {
+background-color: rgba(244, 67, 54, 0.2);
+color: #c62828;
+}
+.filter-dropdown {
+appearance: none;
+background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%231a237e'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+background-repeat: no-repeat;
+background-position: right 0.5rem center;
+background-size: 1.5em 1.5em;
+}
+</style>
+</head>
+<body>
+<div class="flex flex-col min-h-screen">
+<!-- Header -->
+<header class="header-gradient text-white py-3">
+<div class="container mx-auto px-4">
+<div class="flex justify-between items-center">
+<div class="font-bold text-xl">TOTAL EXPRESS</div>
+<div class="text-center text-xl font-bold">PERFORMANCE SHOPEE</div>
+<div class="flex items-center gap-4">
+<label class="cursor-pointer bg-white text-primary px-4 py-2 rounded-button flex items-center gap-2 whitespace-nowrap">
+<i class="ri-upload-2-line"></i>
+<span>Upload Excel</span>
+<input type="file" class="hidden" id="excelFile" accept=".xlsx, .xls" onchange="handleExcelUpload(event)">
+</label>
+<button id="exportPDF" class="bg-white text-primary px-4 py-2 rounded-button flex items-center gap-2 whitespace-nowrap">
+<i class="ri-file-pdf-line"></i>
+<span>Export PDF</span>
+</button>
+</div>
+</div>
+</div>
+</header>
+<!-- Navigation -->
+<nav class="bg-gray-800 text-white">
+<div class="container mx-auto px-4">
+<div class="flex justify-between">
+<div class="flex space-x-8">
+<a href="https://readdy.ai/home/185448b4-c783-4863-9800-8862ca7b53b9/56276ea5-7e8d-4eed-84b0-6a29e86067b8" data-readdy="true" class="nav-item py-3 px-4">PERFORMANCE SHOPEE</a>
+<a href="#" class="nav-item active py-3 px-4">SEMANAL SHOPEE</a>
+</div>
+<div class="flex items-center">
+<div class="w-8 h-8 flex items-center justify-center text-white">
+<i class="ri-shopping-cart-2-line ri-lg"></i>
+</div>
+</div>
+</div>
+</div>
+</nav>
+<!-- Main Content -->
+<main class="flex-grow bg-white">
+<div class="container mx-auto px-4 py-6">
+<!-- Filters Section -->
+<div class="bg-white rounded shadow p-4 mb-6">
+<div class="flex flex-wrap items-center justify-between gap-4">
+<div class="flex items-center gap-4">
+<div class="flex flex-col">
+<label for="weekSelector" class="text-sm font-medium text-gray-700 mb-1">Selecionar Semana</label>
+<select id="weekSelector" class="filter-dropdown border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary pr-8">
+<option value="W26">W26 (01/07/2025 - 07/07/2025)</option>
+<option value="W25">W25 (24/06/2025 - 30/06/2025)</option>
+<option value="W24">W24 (17/06/2025 - 23/06/2025)</option>
+<option value="W23">W23 (10/06/2025 - 16/06/2025)</option>
+<option value="W22">W22 (03/06/2025 - 09/06/2025)</option>
+</select>
+</div>
+<div class="flex flex-col">
+<label for="regionSelector" class="text-sm font-medium text-gray-700 mb-1">Região</label>
+<div class="relative">
+<select id="regionSelector" class="filter-dropdown border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary pr-8">
+<option value="all">Todas as Regiões</option>
+<option value="sudeste">Sudeste</option>
+<option value="sul">Sul</option>
+<option value="nordeste">Nordeste</option>
+<option value="centro-oeste">Centro-Oeste</option>
+<option value="norte">Norte</option>
+</select>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<div class="text-sm text-gray-600">
+<span class="font-medium">Período Atual:</span> 01/07/2025 - 07/07/2025 (W26)
+</div>
+<button id="refreshData" class="bg-primary text-white px-4 py-2 rounded-button flex items-center gap-2 whitespace-nowrap">
+<i class="ri-refresh-line"></i>
+<span>Atualizar Dados</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Metrics Cards -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+<div class="bg-white rounded shadow p-4">
+<div class="flex items-center justify-between mb-2">
+<h3 class="text-gray-500 text-sm">Volume Total de Entregas</h3>
+<div class="w-8 h-8 flex items-center justify-center text-primary bg-blue-50 rounded-full">
+<i class="ri-box-3-line"></i>
+</div>
+</div>
+<div class="flex items-end justify-between">
+<div>
+<p class="text-2xl font-bold">97.554</p>
+<p class="text-sm text-green-600 flex items-center">
+<i class="ri-arrow-up-line mr-1"></i>
+<span>10,6% vs semana anterior</span>
+</p>
+</div>
+<div class="text-xs text-gray-500">Meta: 95.000</div>
+</div>
+</div>
+<div class="bg-white rounded shadow p-4">
+<div class="flex items-center justify-between mb-2">
+<h3 class="text-gray-500 text-sm">SLA Geral</h3>
+<div class="w-8 h-8 flex items-center justify-center text-primary bg-blue-50 rounded-full">
+<i class="ri-time-line"></i>
+</div>
+</div>
+<div class="flex items-end justify-between">
+<div>
+<p class="text-2xl font-bold">99,4%</p>
+<p class="text-sm text-green-600 flex items-center">
+<i class="ri-arrow-up-line mr-1"></i>
+<span>0,1% vs semana anterior</span>
+</p>
+</div>
+<div class="text-xs text-gray-500">Meta: 98%</div>
+</div>
+</div>
+<div class="bg-white rounded shadow p-4">
+<div class="flex items-center justify-between mb-2">
+<h3 class="text-gray-500 text-sm">Entregas no Prazo</h3>
+<div class="w-8 h-8 flex items-center justify-center text-primary bg-blue-50 rounded-full">
+<i class="ri-check-double-line"></i>
+</div>
+</div>
+<div class="flex items-end justify-between">
+<div>
+<p class="text-2xl font-bold">96.100</p>
+<p class="text-sm text-green-600 flex items-center">
+<i class="ri-arrow-up-line mr-1"></i>
+<span>11,6% vs semana anterior</span>
+</p>
+</div>
+<div class="text-xs text-gray-500">98,5% do total</div>
+</div>
+</div>
+<div class="bg-white rounded shadow p-4">
+<div class="flex items-center justify-between mb-2">
+<h3 class="text-gray-500 text-sm">SLA TEX</h3>
+<div class="w-8 h-8 flex items-center justify-center text-primary bg-blue-50 rounded-full">
+<i class="ri-truck-line"></i>
+</div>
+</div>
+<div class="flex items-end justify-between">
+<div>
+<p class="text-2xl font-bold">94,2%</p>
+<p class="text-sm text-green-600 flex items-center">
+<i class="ri-arrow-up-line mr-1"></i>
+<span>3,5% vs semana anterior</span>
+</p>
+</div>
+<div class="text-xs text-gray-500">Meta: 92%</div>
+</div>
+</div>
+</div>
+<!-- Charts Section -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+<!-- Volume Semanal Chart -->
+<div class="bg-white rounded shadow p-4">
+<div class="flex justify-between items-center mb-4">
+<h2 class="text-lg font-bold">Volume Semanal</h2>
+<div class="flex gap-2">
+<button class="text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 px-2 py-1 rounded-full">Diário</button>
+<button class="text-xs bg-primary text-white px-2 py-1 rounded-full">Semanal</button>
+</div>
+</div>
+<div id="volumeChart" class="chart-container"></div>
+</div>
+<!-- SLA Comparison Chart -->
+<div class="bg-white rounded shadow p-4">
+<div class="flex justify-between items-center mb-4">
+<h2 class="text-lg font-bold">Comparativo SLA</h2>
+<div class="flex gap-2">
+<button class="text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 px-2 py-1 rounded-full">SLA TEX</button>
+<button class="text-xs bg-primary text-white px-2 py-1 rounded-full">SLA Shopee</button>
+</div>
+</div>
+<div id="slaChart" class="chart-container"></div>
+</div>
+</div>
+<!-- Regional Performance Table -->
+<div class="bg-white rounded shadow overflow-hidden mb-8">
+<div class="p-4 border-b">
+<h2 class="text-lg font-bold">Desempenho por Região</h2>
+</div>
+<div class="overflow-x-auto">
+<table class="data-table w-full text-sm">
+<thead>
+<tr>
+<th class="py-3 px-4 text-left">Região</th>
+<th class="py-3 px-4 text-center">Volume</th>
+<th class="py-3 px-4 text-center">% do Total</th>
+<th class="py-3 px-4 text-center">SLA Shopee</th>
+<th class="py-3 px-4 text-center">SLA TEX</th>
+<th class="py-3 px-4 text-center">Var. vs Semana Anterior</th>
+<th class="py-3 px-4 text-center">Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="py-3 px-4 font-medium">Sudeste</td>
+<td class="py-3 px-4 text-center">48.777</td>
+<td class="py-3 px-4 text-center">50,0%</td>
+<td class="py-3 px-4 text-center">99,7%</td>
+<td class="py-3 px-4 text-center">95,3%</td>
+<td class="py-3 px-4 text-center text-green-600">+2,1%</td>
+<td class="py-3 px-4 text-center"><span class="status-good px-2 py-1 rounded-full text-xs">Ótimo</span></td>
+</tr>
+<tr>
+<td class="py-3 px-4 font-medium">Sul</td>
+<td class="py-3 px-4 text-center">19.511</td>
+<td class="py-3 px-4 text-center">20,0%</td>
+<td class="py-3 px-4 text-center">99,5%</td>
+<td class="py-3 px-4 text-center">94,8%</td>
+<td class="py-3 px-4 text-center text-green-600">+1,8%</td>
+<td class="py-3 px-4 text-center"><span class="status-good px-2 py-1 rounded-full text-xs">Ótimo</span></td>
+</tr>
+<tr>
+<td class="py-3 px-4 font-medium">Nordeste</td>
+<td class="py-3 px-4 text-center">14.633</td>
+<td class="py-3 px-4 text-center">15,0%</td>
+<td class="py-3 px-4 text-center">98,9%</td>
+<td class="py-3 px-4 text-center">92,7%</td>
+<td class="py-3 px-4 text-center text-green-600">+3,2%</td>
+<td class="py-3 px-4 text-center"><span class="status-good px-2 py-1 rounded-full text-xs">Bom</span></td>
+</tr>
+<tr>
+<td class="py-3 px-4 font-medium">Centro-Oeste</td>
+<td class="py-3 px-4 text-center">9.755</td>
+<td class="py-3 px-4 text-center">10,0%</td>
+<td class="py-3 px-4 text-center">98,5%</td>
+<td class="py-3 px-4 text-center">91,4%</td>
+<td class="py-3 px-4 text-center text-yellow-600">-0,8%</td>
+<td class="py-3 px-4 text-center"><span class="status-warning px-2 py-1 rounded-full text-xs">Regular</span></td>
+</tr>
+<tr>
+<td class="py-3 px-4 font-medium">Norte</td>
+<td class="py-3 px-4 text-center">4.878</td>
+<td class="py-3 px-4 text-center">5,0%</td>
+<td class="py-3 px-4 text-center">96,8%</td>
+<td class="py-3 px-4 text-center">88,5%</td>
+<td class="py-3 px-4 text-center text-red-600">-2,3%</td>
+<td class="py-3 px-4 text-center"><span class="status-bad px-2 py-1 rounded-full text-xs">Atenção</span></td>
+</tr>
+</tbody>
+<tfoot class="bg-gray-100">
+<tr>
+<td class="py-3 px-4 font-bold">Total</td>
+<td class="py-3 px-4 text-center font-bold">97.554</td>
+<td class="py-3 px-4 text-center font-bold">100,0%</td>
+<td class="py-3 px-4 text-center font-bold">99,4%</td>
+<td class="py-3 px-4 text-center font-bold">94,2%</td>
+<td class="py-3 px-4 text-center font-bold text-green-600">+1,8%</td>
+<td class="py-3 px-4 text-center"><span class="status-good px-2 py-1 rounded-full text-xs">Bom</span></td>
+</tr>
+</tfoot>
+</table>
+</div>
+</div>
+<!-- Weekly Comparison Table -->
+<div class="bg-white rounded shadow overflow-hidden mb-8">
+<div class="p-4 border-b">
+<h2 class="text-lg font-bold">Comparativo Semanal</h2>
+</div>
+<div class="overflow-x-auto">
+<table class="data-table w-full text-sm">
+<thead>
+<tr>
+<th class="py-3 px-4 text-left">Métrica</th>
+<th class="py-3 px-4 text-center">W22</th>
+<th class="py-3 px-4 text-center">W23</th>
+<th class="py-3 px-4 text-center">W24</th>
+<th class="py-3 px-4 text-center">W25</th>
+<th class="py-3 px-4 text-center">W26</th>
+<th class="py-3 px-4 text-center">Tendência</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="py-3 px-4 font-medium">Volume Total</td>
+<td class="py-3 px-4 text-center">103.554</td>
+<td class="py-3 px-4 text-center">107.953</td>
+<td class="py-3 px-4 text-center">87.518</td>
+<td class="py-3 px-4 text-center">88.186</td>
+<td class="py-3 px-4 text-center font-bold">97.554</td>
+<td class="py-3 px-4 text-center">
+<div id="trendVolume" class="h-8"></div>
+</td>
+</tr>
+<tr>
+<td class="py-3 px-4 font-medium">SLA Shopee</td>
+<td class="py-3 px-4 text-center">96,9%</td>
+<td class="py-3 px-4 text-center">98,5%</td>
+<td class="py-3 px-4 text-center">99,2%</td>
+<td class="py-3 px-4 text-center">99,5%</td>
+<td class="py-3 px-4 text-center font-bold">99,4%</td>
+<td class="py-3 px-4 text-center">
+<div id="trendSLAShopee" class="h-8"></div>
+</td>
+</tr>
+<tr>
+<td class="py-3 px-4 font-medium">Entregas no Prazo</td>
+<td class="py-3 px-4 text-center">90.829</td>
+<td class="py-3 px-4 text-center">106.623</td>
+<td class="py-3 px-4 text-center">83.779</td>
+<td class="py-3 px-4 text-center">86.103</td>
+<td class="py-3 px-4 text-center font-bold">96.100</td>
+<td class="py-3 px-4 text-center">
+<div id="trendOnTime" class="h-8"></div>
+</td>
+</tr>
+<tr>
+<td class="py-3 px-4 font-medium">SLA TEX</td>
+<td class="py-3 px-4 text-center">87,8%</td>
+<td class="py-3 px-4 text-center">93,0%</td>
+<td class="py-3 px-4 text-center">93,0%</td>
+<td class="py-3 px-4 text-center">90,7%</td>
+<td class="py-3 px-4 text-center font-bold">94,2%</td>
+<td class="py-3 px-4 text-center">
+<div id="trendSLATex" class="h-8"></div>
+</td>
+</tr>
+<tr>
+<td class="py-3 px-4 font-medium">Tempo Médio de Entrega</td>
+<td class="py-3 px-4 text-center">2,8 dias</td>
+<td class="py-3 px-4 text-center">2,6 dias</td>
+<td class="py-3 px-4 text-center">2,5 dias</td>
+<td class="py-3 px-4 text-center">2,4 dias</td>
+<td class="py-3 px-4 text-center font-bold">2,3 dias</td>
+<td class="py-3 px-4 text-center">
+<div id="trendDeliveryTime" class="h-8"></div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<!-- Detailed Metrics Section -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+<!-- Daily Distribution Chart -->
+<div class="bg-white rounded shadow p-4">
+<h2 class="text-lg font-bold mb-4">Distribuição Diária</h2>
+<div id="dailyDistributionChart" class="chart-container"></div>
+</div>
+<!-- Delivery Status Chart -->
+<div class="bg-white rounded shadow p-4">
+<h2 class="text-lg font-bold mb-4">Status de Entrega</h2>
+<div id="deliveryStatusChart" class="chart-container"></div>
+</div>
+</div>
+</div>
+</main>
+</div>
+<script id="charts-script">
+document.addEventListener('DOMContentLoaded', function() {
+// Volume Semanal Chart
+const volumeChart = echarts.init(document.getElementById('volumeChart'));
+const volumeOption = {
+animation: false,
+tooltip: {
+trigger: 'axis',
+backgroundColor: 'rgba(255, 255, 255, 0.8)',
+borderColor: '#ccc',
+borderWidth: 1,
+textStyle: {
+color: '#1f2937'
+}
+},
+grid: {
+left: '3%',
+right: '4%',
+bottom: '10%',
+top: '3%',
+containLabel: true
+},
+xAxis: {
+type: 'category',
+data: ['W22', 'W23', 'W24', 'W25', 'W26'],
+axisLabel: {
+color: '#1f2937'
+}
+},
+yAxis: {
+type: 'value',
+axisLabel: {
+formatter: '{value}',
+color: '#1f2937'
+}
+},
+series: [
+{
+name: 'Volume Total',
+type: 'line',
+smooth: true,
+data: [103554, 107953, 87518, 88186, 97554],
+itemStyle: {
+color: 'rgba(87, 181, 231, 1)'
+},
+areaStyle: {
+color: {
+type: 'linear',
+x: 0,
+y: 0,
+x2: 0,
+y2: 1,
+colorStops: [
+{
+offset: 0,
+color: 'rgba(87, 181, 231, 0.3)'
+},
+{
+offset: 1,
+color: 'rgba(87, 181, 231, 0.1)'
+}
+]
+}
+},
+emphasis: {
+itemStyle: {
+color: 'rgba(87, 181, 231, 0.8)'
+}
+}
+}
+]
+};
+volumeChart.setOption(volumeOption);
+// SLA Comparison Chart
+const slaChart = echarts.init(document.getElementById('slaChart'));
+const slaOption = {
+animation: false,
+tooltip: {
+trigger: 'axis',
+backgroundColor: 'rgba(255, 255, 255, 0.8)',
+borderColor: '#ccc',
+borderWidth: 1,
+textStyle: {
+color: '#1f2937'
+}
+},
+legend: {
+data: ['SLA Shopee', 'SLA TEX', 'Diferença'],
+bottom: 0
+},
+grid: {
+left: '3%',
+right: '4%',
+bottom: '15%',
+top: '3%',
+containLabel: true
+},
+xAxis: {
+type: 'category',
+data: ['W22', 'W23', 'W24', 'W25', 'W26'],
+axisLabel: {
+color: '#1f2937'
+}
+},
+yAxis: [
+{
+type: 'value',
+name: 'Percentual',
+min: 80,
+max: 100,
+axisLabel: {
+formatter: '{value}%',
+color: '#1f2937'
+}
+},
+{
+type: 'value',
+name: 'Diferença',
+min: 0,
+max: 15,
+position: 'right',
+axisLabel: {
+formatter: '{value}%',
+color: '#1f2937'
+}
+}
+],
+series: [
+{
+name: 'SLA Shopee',
+type: 'line',
+data: [96.9, 98.5, 99.2, 99.5, 99.4],
+itemStyle: {
+color: 'rgba(141, 211, 199, 1)'
+},
+smooth: true,
+emphasis: {
+itemStyle: {
+color: 'rgba(141, 211, 199, 0.8)'
+}
+}
+},
+{
+name: 'SLA TEX',
+type: 'line',
+data: [87.8, 93.0, 93.0, 90.7, 94.2],
+itemStyle: {
+color: 'rgba(251, 191, 114, 1)'
+},
+smooth: true,
+emphasis: {
+itemStyle: {
+color: 'rgba(251, 191, 114, 0.8)'
+}
+}
+},
+{
+name: 'Diferença',
+type: 'bar',
+yAxisIndex: 1,
+data: [9.1, 5.5, 6.2, 8.8, 5.2],
+itemStyle: {
+color: 'rgba(252, 141, 98, 0.6)',
+borderRadius: [4, 4, 0, 0]
+},
+emphasis: {
+itemStyle: {
+color: 'rgba(252, 141, 98, 0.8)'
+}
+}
+}
+]
+};
+slaChart.setOption(slaOption);
+// Daily Distribution Chart
+const dailyDistributionChart = echarts.init(document.getElementById('dailyDistributionChart'));
+const dailyDistributionOption = {
+animation: false,
+tooltip: {
+trigger: 'axis',
+backgroundColor: 'rgba(255, 255, 255, 0.8)',
+borderColor: '#ccc',
+borderWidth: 1,
+textStyle: {
+color: '#1f2937'
+}
+},
+legend: {
+data: ['Volume', 'SLA'],
+bottom: 0
+},
+grid: {
+left: '3%',
+right: '4%',
+bottom: '15%',
+top: '3%',
+containLabel: true
+},
+xAxis: {
+type: 'category',
+data: ['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado', 'Domingo'],
+axisLabel: {
+color: '#1f2937'
+}
+},
+yAxis: [
+{
+type: 'value',
+name: 'Volume',
+axisLabel: {
+formatter: '{value}',
+color: '#1f2937'
+}
+},
+{
+type: 'value',
+name: 'SLA',
+min: 90,
+max: 100,
+position: 'right',
+axisLabel: {
+formatter: '{value}%',
+color: '#1f2937'
+}
+}
+],
+series: [
+{
+name: 'Volume',
+type: 'bar',
+data: [18635, 16584, 15608, 14633, 13658, 12682, 5754],
+barWidth: '40%',
+itemStyle: {
+color: 'rgba(87, 181, 231, 1)',
+borderRadius: [4, 4, 0, 0]
+},
+emphasis: {
+itemStyle: {
+color: 'rgba(87, 181, 231, 0.8)'
+}
+}
+},
+{
+name: 'SLA',
+type: 'line',
+yAxisIndex: 1,
+data: [99.6, 99.5, 99.7, 99.3, 99.2, 99.0, 98.8],
+itemStyle: {
+color: 'rgba(251, 191, 114, 1)'
+},
+smooth: true,
+emphasis: {
+itemStyle: {
+color: 'rgba(251, 191, 114, 0.8)'
+}
+}
+}
+]
+};
+dailyDistributionChart.setOption(dailyDistributionOption);
+// Delivery Status Chart
+const deliveryStatusChart = echarts.init(document.getElementById('deliveryStatusChart'));
+const deliveryStatusOption = {
+animation: false,
+tooltip: {
+trigger: 'item',
+backgroundColor: 'rgba(255, 255, 255, 0.8)',
+borderColor: '#ccc',
+borderWidth: 1,
+textStyle: {
+color: '#1f2937'
+}
+},
+legend: {
+orient: 'vertical',
+right: 10,
+top: 'center',
+data: ['Entregue no Prazo', 'Entregue com Atraso', 'Em Trânsito', 'Problemas de Entrega', 'Devoluções']
+},
+series: [
+{
+name: 'Status de Entrega',
+type: 'pie',
+radius: ['40%', '70%'],
+center: ['40%', '50%'],
+avoidLabelOverlap: false,
+itemStyle: {
+borderRadius: 8,
+borderColor: '#fff',
+borderWidth: 2
+},
+label: {
+show: false,
+position: 'center'
+},
+emphasis: {
+label: {
+show: true,
+fontSize: 14,
+fontWeight: 'bold'
+}
+},
+labelLine: {
+show: false
+},
+data: [
+{ value: 96100, name: 'Entregue no Prazo', itemStyle: { color: 'rgba(87, 181, 231, 1)' } },
+{ value: 585, name: 'Entregue com Atraso', itemStyle: { color: 'rgba(141, 211, 199, 1)' } },
+{ value: 390, name: 'Em Trânsito', itemStyle: { color: 'rgba(251, 191, 114, 1)' } },
+{ value: 292, name: 'Problemas de Entrega', itemStyle: { color: 'rgba(252, 141, 98, 1)' } },
+{ value: 187, name: 'Devoluções', itemStyle: { color: '#c7c7c7' } }
+]
+}
+]
+};
+deliveryStatusChart.setOption(deliveryStatusOption);
+// Trend Mini Charts
+const trendCharts = [
+{ id: 'trendVolume', data: [103554, 107953, 87518, 88186, 97554] },
+{ id: 'trendSLAShopee', data: [96.9, 98.5, 99.2, 99.5, 99.4] },
+{ id: 'trendOnTime', data: [90829, 106623, 83779, 86103, 96100] },
+{ id: 'trendSLATex', data: [87.8, 93.0, 93.0, 90.7, 94.2] },
+{ id: 'trendDeliveryTime', data: [2.8, 2.6, 2.5, 2.4, 2.3], inverse: true }
+];
+trendCharts.forEach(item => {
+const chart = echarts.init(document.getElementById(item.id));
+const isPositiveTrend = item.inverse ?
+item.data[item.data.length - 1] < item.data[item.data.length - 2] :
+item.data[item.data.length - 1] > item.data[item.data.length - 2];
+const option = {
+animation: false,
+grid: {
+left: 0,
+right: 0,
+top: 0,
+bottom: 0
+},
+xAxis: {
+type: 'category',
+data: ['W22', 'W23', 'W24', 'W25', 'W26'],
+show: false
+},
+yAxis: {
+type: 'value',
+show: false
+},
+series: [
+{
+data: item.data,
+type: 'line',
+symbol: 'none',
+smooth: true,
+lineStyle: {
+color: isPositiveTrend ? '#4caf50' : '#e53935',
+width: 2
+},
+areaStyle: {
+color: {
+type: 'linear',
+x: 0,
+y: 0,
+x2: 0,
+y2: 1,
+colorStops: [
+{
+offset: 0,
+color: isPositiveTrend ? 'rgba(76, 175, 80, 0.2)' : 'rgba(229, 57, 53, 0.2)'
+},
+{
+offset: 1,
+color: isPositiveTrend ? 'rgba(76, 175, 80, 0.05)' : 'rgba(229, 57, 53, 0.05)'
+}
+]
+}
+}
+}
+]
+};
+chart.setOption(option);
+});
+// Responsive charts
+window.addEventListener('resize', function() {
+volumeChart.resize();
+slaChart.resize();
+dailyDistributionChart.resize();
+deliveryStatusChart.resize();
+trendCharts.forEach(item => {
+const chart = echarts.init(document.getElementById(item.id));
+chart.resize();
+});
+});
+// File Upload and Export
+const fileInput = document.getElementById('excelFile');
+const exportButton = document.getElementById('exportPDF');
+const refreshButton = document.getElementById('refreshData');
+async function handleExcelUpload(event) {
+  const file = event.target.files[0];
+  const refreshButton = document.getElementById('refreshData');
+  
+  if (file) {
+    refreshButton.innerHTML = '<i class="ri-loader-4-line animate-spin"></i><span>Processando...</span>';
+    
+    try {
+      const data = await file.arrayBuffer();
+      const workbook = XLSX.read(data);
+      const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+      const jsonData = XLSX.utils.sheet_to_json(worksheet, {header: 1});
+      
+      updateTableWithData(jsonData);
+      updateChartsWithData(jsonData);
+      
+      refreshButton.innerHTML = '<i class="ri-refresh-line"></i><span>Atualizar Dados</span>';
+      
+      const successMsg = document.createElement('div');
+      successMsg.className = 'fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded shadow';
+      successMsg.textContent = 'Arquivo processado com sucesso!';
+      document.body.appendChild(successMsg);
+      setTimeout(() => successMsg.remove(), 3000);
+    } catch (error) {
+      console.error('Error processing file:', error);
+      refreshButton.innerHTML = '<i class="ri-refresh-line"></i><span>Atualizar Dados</span>';
+      
+      const errorMsg = document.createElement('div');
+      errorMsg.className = 'fixed top-4 right-4 bg-red-500 text-white px-4 py-2 rounded shadow';
+      errorMsg.textContent = 'Erro ao processar arquivo. Tente novamente.';
+      document.body.appendChild(errorMsg);
+      setTimeout(() => errorMsg.remove(), 3000);
+    }
+  }
+}
+function updateTableWithData(data) {
+  const table = document.createElement('table');
+  table.className = 'data-table w-full text-sm';
+  
+  // Create header
+  const thead = document.createElement('thead');
+  const headerRow = document.createElement('tr');
+  data[0].forEach(header => {
+    const th = document.createElement('th');
+    th.className = 'py-3 px-4 text-left';
+    th.textContent = header;
+    headerRow.appendChild(th);
+  });
+  thead.appendChild(headerRow);
+  table.appendChild(thead);
+  
+  // Create body
+  const tbody = document.createElement('tbody');
+  data.slice(1).forEach(row => {
+    const tr = document.createElement('tr');
+    row.forEach(cell => {
+      const td = document.createElement('td');
+      td.className = 'py-3 px-4';
+      td.textContent = cell;
+      tr.appendChild(td);
+    });
+    tbody.appendChild(tr);
+  });
+  table.appendChild(tbody);
+  
+  // Replace existing table
+  const existingTable = document.querySelector('.data-table');
+  existingTable.parentNode.replaceChild(table, existingTable);
+}
+function updateChartsWithData(data) {
+  // Update charts with new data
+  // This will be implemented based on the specific chart requirements
+}
+exportButton.addEventListener('click', function() {
+const element = document.querySelector('main');
+const opt = {
+margin: 1,
+filename: 'semanal-shopee-report.pdf',
+image: { type: 'jpeg', quality: 0.98 },
+html2canvas: { scale: 2 },
+jsPDF: { unit: 'in', format: 'a4', orientation: 'landscape' }
+};
+// Simulate loading
+exportButton.innerHTML = '<i class="ri-loader-4-line animate-spin"></i><span>Gerando...</span>';
+setTimeout(() => {
+exportButton.innerHTML = '<i class="ri-file-pdf-line"></i><span>Export PDF</span>';
+html2pdf().set(opt).from(element).save();
+}, 1000);
+});
+refreshButton.addEventListener('click', function() {
+refreshButton.innerHTML = '<i class="ri-loader-4-line animate-spin"></i><span>Atualizando...</span>';
+setTimeout(() => {
+refreshButton.innerHTML = '<i class="ri-refresh-line"></i><span>Atualizar Dados</span>';
+alert('Dados atualizados com sucesso!');
+}, 1500);
+});
+// Week and Region Selectors
+const weekSelector = document.getElementById('weekSelector');
+const regionSelector = document.getElementById('regionSelector');
+weekSelector.addEventListener('change', function() {
+refreshButton.innerHTML = '<i class="ri-loader-4-line animate-spin"></i><span>Atualizando...</span>';
+setTimeout(() => {
+refreshButton.innerHTML = '<i class="ri-refresh-line"></i><span>Atualizar Dados</span>';
+}, 800);
+});
+regionSelector.addEventListener('change', function() {
+refreshButton.innerHTML = '<i class="ri-loader-4-line animate-spin"></i><span>Atualizando...</span>';
+setTimeout(() => {
+refreshButton.innerHTML = '<i class="ri-refresh-line"></i><span>Atualizar Dados</span>';
+}, 800);
+});
+});
+</script>
+</body>
+</html>
